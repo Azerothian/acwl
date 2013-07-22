@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "acwl", "acwl\acwl.csproj", "{7C79D3B0-B691-4D9E-B615-7A6D06C5EAAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "acwl.Console", "acwl.Console\acwl.Console.csproj", "{D2EA005B-309D-4D45-BCBA-D26721E0EB7A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "acwl.hook", "acwl.hook\acwl.hook.csproj", "{41737C75-3BF1-4B24-A0FD-6BCE00157DD2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7C79D3B0-B691-4D9E-B615-7A6D06C5EAAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C79D3B0-B691-4D9E-B615-7A6D06C5EAAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C79D3B0-B691-4D9E-B615-7A6D06C5EAAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C79D3B0-B691-4D9E-B615-7A6D06C5EAAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2EA005B-309D-4D45-BCBA-D26721E0EB7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2EA005B-309D-4D45-BCBA-D26721E0EB7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2EA005B-309D-4D45-BCBA-D26721E0EB7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2EA005B-309D-4D45-BCBA-D26721E0EB7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41737C75-3BF1-4B24-A0FD-6BCE00157DD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41737C75-3BF1-4B24-A0FD-6BCE00157DD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41737C75-3BF1-4B24-A0FD-6BCE00157DD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41737C75-3BF1-4B24-A0FD-6BCE00157DD2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
