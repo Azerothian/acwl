@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 
@@ -12,11 +13,9 @@ namespace acwl
             
         }
 
-
-
         public void ReportException(Exception ExtInfo)
         {
-            Console.WriteLine("An Error has occurred");
+            Console.WriteLine("An Error has occurred " + ExtInfo.Message);
         }
 
         public void IsInstalled(int p)
@@ -37,14 +36,14 @@ namespace acwl
             }
         }
 
-        public void ProcessSend(hook.Packet[] sendOut)
-        {
+        //public void ProcessSend(hook.Packet[] sendOut)
+        //{
             
-        }
+        //}
 
-        public void ProcessRecv(hook.Packet[] recvOut)
-        {
+        //public void ProcessRecv(hook.Packet[] recvOut)
+        //{
             
-        }
+        //}
     }
 }

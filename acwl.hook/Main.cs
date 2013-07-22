@@ -15,51 +15,67 @@ namespace acwl.hook
         CubeBridge Interface;
         Dictionary<string, LocalHook> _hooks;
 
-        LocalHook ConnectHook;
+       // LocalHook ConnectHook;
         static Queue<String> PrintQueue = new Queue<String>();
 
-        static Queue<Packet> SendPacketQueue = new Queue<Packet>();
-        static Queue<Packet> RecvPacketQueue = new Queue<Packet>();
+        //static Queue<Packet> SendPacketQueue = new Queue<Packet>();
+        //static Queue<Packet> RecvPacketQueue = new Queue<Packet>();
 
-        static bool TrackPackets = false;
+       // static bool TrackPackets = false;
         static ushort Port = 0;
 
         public Main(
             RemoteHooking.IContext InContext,
-            String InChannelName)
+            String InChannelName, ushort _port)
         {
             // connect to host...
             _hooks = new Dictionary<string, LocalHook>();
             Interface =
               RemoteHooking.IpcConnectClient<CubeBridge>(InChannelName);
+            Port = _port;
         }
 
         public void Run(
             RemoteHooking.IContext InContext,
-            String InChannelName)
+            String InChannelName, ushort _port)
         {
             // install hook...
             try
             {
+
+
+                WriteMessage("Setting Port {0}", Port);
+
+                Port = _port;
+              //  WriteMessage("Ensure Winsock is loaded");
+                IntPtr handle = NativeAPI.LoadLibrary("c:\\windows\\system32\\Ws2_32.dll");
+                WriteMessage("Adding Hook..");
                 _hooks.Add("connect", LocalHook.Create(
                     LocalHook.GetProcAddress("Ws2_32.dll", "connect"),
                     new ptrConnect(ptrConnect_Hooked),
                     this));
+                NativeAPI.CloseHandle(handle);
+              //  NativeAPI.
                 // ConnectHook.ThreadACL.SetInclusiveACL(new Int32[] { 0 });
                 // _hooks["connect"].ThreadACL.SetExclusiveACL(new Int32[] { 0 });
-                _hooks.Add("recv", LocalHook.Create(
-                   LocalHook.GetProcAddress("Ws2_32.dll", "recv"),
-                   new ptrRecv(ptrRecv_Hooked),
-                   this));
-                _hooks.Add("send", LocalHook.Create(
-                    LocalHook.GetProcAddress("Ws2_32.dll", "send"),
-                    new ptrSend(ptrSend_Hooked),
-                    this));
-
+                //_hooks.Add("recv", LocalHook.Create(
+                //   LocalHook.GetProcAddress("Ws2_32.dll", "recv"),
+                //   new ptrRecv(ptrRecv_Hooked),
+                //   this));
+                //_hooks.Add("send", LocalHook.Create(
+                //    LocalHook.GetProcAddress("Ws2_32.dll", "send"),
+                //    new ptrSend(ptrSend_Hooked),
+                //    this));
+                WriteMessage("SetExclusiveACL on all hooks");
                 foreach (var v in _hooks)
                 {
                     v.Value.ThreadACL.SetExclusiveACL(new Int32[] { 0 });
                 }
+                //WriteMessage("SetInclusiveACL on all hooks");
+                //foreach (var v in _hooks)
+                //{
+                //    v.Value.ThreadACL.SetInclusiveACL(new Int32[] { 0 });
+                //}
             }
             catch (Exception ExtInfo)
             {
@@ -67,8 +83,12 @@ namespace acwl.hook
 
                 return;
             }
+
+            WriteMessage("Wakeup Neo.. wakeup");
             RemoteHooking.WakeUpProcess();
+            
             Interface.IsInstalled(RemoteHooking.GetCurrentProcessId());
+            WriteMessage("Starting Message Loop");
             try
             {
                 while (true)
@@ -88,18 +108,18 @@ namespace acwl.hook
                         Interface.PrintMessage(Output);
                     }
 
-                    if (SendPacketQueue.Count > 0)
-                    {
-                        Packet[] sendOut = null;
+                    //if (SendPacketQueue.Count > 0)
+                    //{
+                    //    Packet[] sendOut = null;
 
-                        lock (SendPacketQueue)
-                        {
-                            sendOut = RecvPacketQueue.ToArray();
-                            SendPacketQueue.Clear();
-                        }
+                    //    lock (SendPacketQueue)
+                    //    {
+                    //        sendOut = RecvPacketQueue.ToArray();
+                    //        SendPacketQueue.Clear();
+                    //    }
 
-                        Interface.ProcessSend(sendOut);
-                    }
+                    //    Interface.ProcessSend(sendOut);
+                    //}
                 }
             }
             catch
@@ -109,34 +129,36 @@ namespace acwl.hook
 
         }
         //public static extern int send(SOCKET s, byte* buf, int len, int flags);
-        [UnmanagedFunctionPointer(CallingConvention.StdCall,
-            CharSet = CharSet.Unicode,
-            SetLastError = true)]
-        delegate int ptrSend(acwl.win32.ws2_32.SOCKET s, ref byte buf, int len, int flag);
-        [UnmanagedFunctionPointer(CallingConvention.StdCall,
-            CharSet = CharSet.Unicode,
-            SetLastError = true)]
+        //[UnmanagedFunctionPointer(CallingConvention.StdCall,
+        //    CharSet = CharSet.Unicode,
+        //    SetLastError = true)]
+        //delegate int ptrSend(acwl.win32.ws2_32.SOCKET s, ref byte buf, int len, int flag);
 
         //public static extern int recv(SOCKET s, ref byte buf, int len, int flags);
-        delegate int ptrRecv(acwl.win32.ws2_32.SOCKET s, ref byte buf, int len, int flag);
+        //[UnmanagedFunctionPointer(CallingConvention.StdCall,
+        //    CharSet = CharSet.Unicode,
+        //    SetLastError = true)]
+        //delegate int ptrRecv(acwl.win32.ws2_32.SOCKET s, ref byte buf, int len, int flag);
         //public static extern int connect(SOCKET s, sockaddr_in* addr, int addrsize);
+
         [UnmanagedFunctionPointer(CallingConvention.StdCall,
             CharSet = CharSet.Unicode,
             SetLastError = true)]
         delegate int ptrConnect(acwl.win32.ws2_32.SOCKET s, ref acwl.win32.ws2_32.sockaddr_in addr, int addrsize);
 
-        [UnmanagedFunctionPointer(CallingConvention.StdCall,
-            CharSet = CharSet.Unicode,
-            SetLastError = true)]
-        delegate int ptrWSAStartup(ushort Version, out acwl.win32.ws2_32.WSAData Data);
-        static int ptrWSAStartup_Hooked(ushort Version, out acwl.win32.ws2_32.WSAData Data)
-        {
-            WriteMessage("WSAStartup");
-            return acwl.win32.ws2_32.WSAStartup(Version, out Data);
-        }
+        //[UnmanagedFunctionPointer(CallingConvention.StdCall,
+        //    CharSet = CharSet.Unicode,
+        //    SetLastError = true)]
+        //delegate int ptrWSAStartup(ushort Version, out acwl.win32.ws2_32.WSAData Data);
+        //static int ptrWSAStartup_Hooked(ushort Version, out acwl.win32.ws2_32.WSAData Data)
+        //{
+        //    WriteMessage("WSAStartup");
+        //    return acwl.win32.ws2_32.WSAStartup(Version, out Data);
+        //}
         static int ptrConnect_Hooked(acwl.win32.ws2_32.SOCKET s, ref acwl.win32.ws2_32.sockaddr_in addr, int addrsize)
         {
             //addr.
+            WriteMessage("connect - Address: {0}, Port: {1}", addr.sin_addr.ToString(), addr.sin_port);
             if (Port > 0)
             {
                 addr.sin_port = acwl.win32.ws2_32.htons(Port);
@@ -148,22 +170,22 @@ namespace acwl.hook
 
         }
 
-        public static int ptrSend_Hooked(acwl.win32.ws2_32.SOCKET s, ref byte buf, int len, int flags)
-        {
-            WriteMessage("send - Len: {0}, Flags: {1}", len, flags);
-            //byte[] v = new byte[len];
-            //Marshal.Copy(buf, v, 0,len);
+        //public static int ptrSend_Hooked(acwl.win32.ws2_32.SOCKET s, ref byte buf, int len, int flags)
+        //{
+        //    WriteMessage("send - Len: {0}, Flags: {1}", len, flags);
+        //    //byte[] v = new byte[len];
+        //    //Marshal.Copy(buf, v, 0,len);
 
-            //ProcessPacket(v);
-            return acwl.win32.ws2_32.send(s, ref buf, len, flags);
-        }
+        //    //ProcessPacket(v);
+        //    return acwl.win32.ws2_32.send(s, ref buf, len, flags);
+        //}
 
-        public static int ptrRecv_Hooked(acwl.win32.ws2_32.SOCKET s, ref byte buf, int len, int flags)
-        {
-            WriteMessage("recv - Len: {0}, Flags: {1}", len, flags);
+        //public static int ptrRecv_Hooked(acwl.win32.ws2_32.SOCKET s, ref byte buf, int len, int flags)
+        //{
+        //    WriteMessage("recv - Len: {0}, Flags: {1}", len, flags);
 
-            return acwl.win32.ws2_32.recv(s,ref buf, len, flags);
-        }
+        //    return acwl.win32.ws2_32.recv(s,ref buf, len, flags);
+        //}
 
         static void WriteMessage(string message, params object[] param)
         {
@@ -172,22 +194,22 @@ namespace acwl.hook
                 PrintQueue.Enqueue(String.Format(message, param));
             }
         }
-        public static void ProcessPacket(byte[] buf)
-        {
-            byte[] b = new byte[buf.Length];
+        //public static void ProcessPacket(byte[] buf)
+        //{
+        //    byte[] b = new byte[buf.Length];
 
-            Array.Copy(buf, b, buf.Length);
+        //    Array.Copy(buf, b, buf.Length);
 
-            Packet p = new Packet()
-            {
-                Captured = DateTime.Now,
-                Data = b
-            };
-            lock (SendPacketQueue)
-            {
-                SendPacketQueue.Enqueue(p);
-            }
+        //    Packet p = new Packet()
+        //    {
+        //        Captured = DateTime.Now,
+        //        Data = b
+        //    };
+        //    lock (SendPacketQueue)
+        //    {
+        //        SendPacketQueue.Enqueue(p);
+        //    }
 
-        }
+        //}
     }
 }

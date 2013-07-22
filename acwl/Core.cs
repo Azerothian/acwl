@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Text;
@@ -13,6 +14,14 @@ namespace acwl
     public class Core //: ApplicationContext
     {
         static String ChannelName = null;
+        static Process proc;
+        ~Core()
+        {
+
+
+        }
+
+
         public Core()
         {
 
@@ -46,30 +55,43 @@ namespace acwl
             //        break;
             //    Thread.Sleep(500);
             //} while (true);
-
+            Settings settings = new Settings();
             ProcessStartInfo start = new ProcessStartInfo();
-            start.FileName = @"J:\Cube World\Cube.exe";
-            start.WorkingDirectory = @"J:\Cube World\";
 
-            //  Run the external process & wait for it to finish
-            using (Process proc = Process.Start(start))
+            FileInfo fi = new FileInfo(settings.ProgramPath);
+            if (fi.Exists)
             {
+                Console.WriteLine("Launching: " + settings.ProgramPath);
+                start.FileName = settings.ProgramPath;
+                start.WorkingDirectory = fi.DirectoryName;
 
-                RemoteHooking.Inject(proc.Id,
-                    "acwl.hook.dll",
-                    "acwl.hook.dll",
-                    ChannelName);
+                //  Run the external process & wait for it to finish
+
+                using (proc = Process.Start(start))
+                {
+                    Console.WriteLine("Injecting:  acwl.hook.dll");
+                    RemoteHooking.Inject(proc.Id,
+                        "acwl.hook.dll",
+                        "acwl.hook.dll",
+                        ChannelName,
+                        settings.Port);
+
+                    Console.WriteLine("Success, now waiting for exitcode.");
+                    proc.WaitForExit();
+
+                    // Retrieve the app's exit code
+                    var exitCode = proc.ExitCode;
+
+                    Console.WriteLine("ExitCode: " + exitCode.ToString());
+                }
 
 
-                proc.WaitForExit();
 
-                // Retrieve the app's exit code
-                var exitCode = proc.ExitCode;
-                Console.WriteLine("Exitcode " + exitCode.ToString());
             }
-
-
-
+            else
+            {
+                Console.WriteLine("Executable not found, unable to launch");
+            }
 
             Console.ReadLine();
 
